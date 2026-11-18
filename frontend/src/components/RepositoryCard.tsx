@@ -2,9 +2,11 @@ import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { useState } from 'react'
 import { FaExclamationCircle } from 'react-icons/fa'
-import { FaCodeFork, FaStar } from 'react-icons/fa6'
+import { FaCalendar, FaCodeFork, FaStar } from 'react-icons/fa6'
 import { HiUserGroup } from 'react-icons/hi'
+import { IconWrapper } from 'wrappers/IconWrapper'
 import type { RepositoryCardListProps, RepositoryCardProps } from 'types/project'
+import { formatDate } from 'utils/dateFormatter'
 import InfoItem from 'components/InfoItem'
 import ShowMoreButton from 'components/ShowMoreButton'
 import StatusBadge from 'components/StatusBadge'
@@ -53,8 +55,10 @@ const RepositoryItem = ({ details }: { details: RepositoryCardProps }) => {
     }
   }
 
+  const formattedUpdatedAt = details.updatedAt ? formatDate(details.updatedAt) : ''
+
   return (
-    <div className="flex h-46 w-full flex-col gap-3 rounded-lg border-1 border-gray-200 p-4 shadow-xs ease-in-out hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+    <div className="flex h-48 w-full flex-col gap-3 rounded-lg border-1 border-gray-200 p-4 shadow-xs ease-in-out hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
       <div className="flex items-start justify-between gap-2">
         <button
           type="button"
@@ -86,6 +90,17 @@ const RepositoryItem = ({ details }: { details: RepositoryCardProps }) => {
           unit="Issue"
           value={details.openIssuesCount}
         />
+        {formattedUpdatedAt && (
+          <div className="flex items-center justify-between">
+            <span className="flex items-center">
+              <IconWrapper icon={FaCalendar} className="mr-2 h-4 w-4" />
+              Updated
+            </span>
+            <time dateTime={details.updatedAt} className="font-medium">
+              {formattedUpdatedAt}
+            </time>
+          </div>
+        )}
       </div>
     </div>
   )

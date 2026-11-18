@@ -344,6 +344,57 @@ describe('RepositoryCard', () => {
     })
   })
 
+  describe('Last Updated Date', () => {
+    it('displays the formatted last updated date', () => {
+      const repositories = [{ ...createMockRepository(0), updatedAt: '2025-01-15T10:30:00Z' }]
+
+      render(<RepositoryCard repositories={repositories} />)
+
+      expect(screen.getByText('Updated')).toBeInTheDocument()
+      const time = screen.getByText('Jan 15, 2025')
+      expect(time.tagName).toBe('TIME')
+      expect(time).toHaveAttribute('dateTime', '2025-01-15T10:30:00Z')
+    })
+
+    it('does not display the updated row when updatedAt is missing', () => {
+      const repositories = [createMockRepository(0)]
+
+      render(<RepositoryCard repositories={repositories} />)
+
+      expect(screen.queryByText('Updated')).not.toBeInTheDocument()
+    })
+
+    it('does not display the updated row when updatedAt is empty', () => {
+      const repositories = [{ ...createMockRepository(0), updatedAt: '' }]
+
+      render(<RepositoryCard repositories={repositories} />)
+
+      expect(screen.queryByText('Updated')).not.toBeInTheDocument()
+    })
+
+    it('does not display the updated row when updatedAt is invalid', () => {
+      const repositories = [{ ...createMockRepository(0), updatedAt: 'not-a-date' }]
+
+      render(<RepositoryCard repositories={repositories} />)
+
+      expect(screen.queryByText('Updated')).not.toBeInTheDocument()
+      expect(screen.queryByText(/Invalid Date/)).not.toBeInTheDocument()
+    })
+
+    it('displays the updated row only for repositories with a valid date', () => {
+      const repositories = [
+        { ...createMockRepository(0), updatedAt: '2025-01-15T10:30:00Z' },
+        createMockRepository(1),
+        { ...createMockRepository(2), updatedAt: 'not-a-date' },
+      ]
+
+      render(<RepositoryCard repositories={repositories} />)
+
+      expect(screen.getAllByText('Updated')).toHaveLength(1)
+      expect(screen.getByText('Jan 15, 2025')).toBeInTheDocument()
+    })
+  })
+
   describe('Keyboard Navigation', () => {
     it('navigates to repository page when Enter key is pressed', () => {
       const repositories = [createMockRepository(0)]

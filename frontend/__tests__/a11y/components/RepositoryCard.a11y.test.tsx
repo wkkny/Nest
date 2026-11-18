@@ -26,6 +26,7 @@ const createMockRepository = (index: number): RepositoryCardProps => ({
   },
   starsCount: 100 + index,
   subscribersCount: 20 + index,
+  updatedAt: '2025-01-15T10:30:00Z',
   url: `https://github.com/org-${index}/repo-${index}`,
 })
 

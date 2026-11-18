@@ -81,6 +81,7 @@ export const mockProjectDetailsData = {
         },
         starsCount: 95,
         subscribersCount: 15,
+        updatedAt: '2025-01-25T00:00:00Z',
         url: 'https://github.com/example-project/repo-1',
       },
       {
@@ -94,6 +95,7 @@ export const mockProjectDetailsData = {
         },
         starsCount: 60,
         subscribersCount: 10,
+        updatedAt: '2025-01-28T00:00:00Z',
         url: 'https://github.com/example-project/repo-2',
       },
     ],
