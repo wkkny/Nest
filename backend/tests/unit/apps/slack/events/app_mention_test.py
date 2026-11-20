@@ -1,4 +1,4 @@
-from apps.slack.events.app_mention import AppMention
+from apps.slack.events.app_mention import EMPTY_QUERY_MESSAGE, AppMention
 
 
 class TestAppMention:
@@ -22,7 +22,7 @@ class TestAppMention:
         client.chat_postMessage.assert_not_called()
 
     def test_handle_event_no_query_in_text(self, mocker):
-        event = {"channel": "C123456", "text": ""}
+        event = {"channel": "C123456", "text": "<@U0BOT>", "ts": "123.456"}
         client = mocker.Mock()
         mock_objects = mocker.Mock()
         mocker.patch("apps.slack.events.app_mention.Conversation.objects", mock_objects)
@@ -31,12 +31,94 @@ class TestAppMention:
         mock_qs.exists.return_value = True
 
         mock_logger = mocker.patch("apps.slack.events.app_mention.logger")
+        mock_get_blocks = mocker.patch("apps.slack.events.app_mention.get_blocks")
 
         handler = AppMention()
         handler.handle_event(event, client)
 
         mock_logger.warning.assert_called_with("No query found in app mention")
-        client.chat_postMessage.assert_not_called()
+        mock_get_blocks.assert_not_called()
+        client.chat_update.assert_not_called()
+        client.chat_postMessage.assert_called_once()
+        _, kwargs = client.chat_postMessage.call_args
+        assert kwargs["channel"] == "C123456"
+        assert kwargs["thread_ts"] == "123.456"
+        assert kwargs["text"] == EMPTY_QUERY_MESSAGE
+
+    def test_handle_event_uses_full_query(self, mocker):
+        event = {
+            "channel": "C123456",
+            "text": "Hey <@U0BOT> what is the OWASP Top 10?",
+            "blocks": [
+                {
+                    "type": "rich_text",
+                    "elements": [
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {"type": "text", "text": "Hey "},
+                                {"type": "user", "user_id": "U0BOT"},
+                                {"type": "text", "text": " what is the OWASP Top 10?"},
+                            ],
+                        }
+                    ],
+                }
+            ],
+            "ts": "123.456",
+        }
+        client = mocker.Mock()
+        client.chat_postMessage.return_value = {"ts": "999.999"}
+
+        mock_objects = mocker.Mock()
+        mocker.patch("apps.slack.events.app_mention.Conversation.objects", mock_objects)
+        mock_qs = mocker.Mock()
+        mock_objects.filter.return_value = mock_qs
+        mock_qs.exists.return_value = True
+
+        mock_get_blocks = mocker.patch("apps.slack.events.app_mention.get_blocks", return_value=[])
+
+        handler = AppMention()
+        handler.handle_event(event, client)
+
+        mock_get_blocks.assert_called_with(query="Hey what is the OWASP Top 10?")
+
+    def test_handle_event_answers_after_leading_mentions(self, mocker):
+        event = {
+            "channel": "C123456",
+            "text": "<@U0BOT> <@U0ALICE> asked how to start an OWASP chapter?",
+            "blocks": [
+                {
+                    "type": "rich_text",
+                    "elements": [
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {"type": "user", "user_id": "U0BOT"},
+                                {"type": "text", "text": " "},
+                                {"type": "user", "user_id": "U0ALICE"},
+                                {"type": "text", "text": " asked how to start an OWASP chapter?"},
+                            ],
+                        }
+                    ],
+                }
+            ],
+            "ts": "123.456",
+        }
+        client = mocker.Mock()
+        client.chat_postMessage.return_value = {"ts": "999.999"}
+
+        mock_objects = mocker.Mock()
+        mocker.patch("apps.slack.events.app_mention.Conversation.objects", mock_objects)
+        mock_qs = mocker.Mock()
+        mock_objects.filter.return_value = mock_qs
+        mock_qs.exists.return_value = True
+
+        mock_get_blocks = mocker.patch("apps.slack.events.app_mention.get_blocks", return_value=[])
+
+        handler = AppMention()
+        handler.handle_event(event, client)
+
+        mock_get_blocks.assert_called_with(query="asked how to start an OWASP chapter?")
 
     def test_handle_event_query_in_blocks(self, mocker):
         event = {
