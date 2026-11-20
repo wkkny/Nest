@@ -24,7 +24,10 @@ def get_rich_text(elements: list) -> str:
             case "link":
                 url = element.get("url", "")
                 label = element.get("text")
-                parts.append(f"{label} ({url})" if label and label != url else url)
+                is_url_label = element.get("truncated") or (
+                    label and label.rstrip("/") == url.split("://", 1)[-1].rstrip("/")
+                )
+                parts.append(f"{label} ({url})" if label and not is_url_label else url)
             case _ if nested := element.get("elements"):
                 parts.append(f"{get_rich_text(nested)}\n")
     return "".join(parts)

@@ -44,6 +44,32 @@ class TestGetQuery:
                 rich_text(
                     section(
                         user("U0BOT"),
+                        text(" is "),
+                        {
+                            "type": "link",
+                            "url": "https://owasp.org/www-project-zap",
+                            "text": "owasp.org/www-project-zap",
+                            "truncated": True,
+                        },
+                        text(" still a flagship project?"),
+                    )
+                ),
+                "is https://owasp.org/www-project-zap still a flagship project?",
+            ),
+            (
+                rich_text(
+                    section(
+                        user("U0BOT"),
+                        text(" see "),
+                        {"type": "link", "url": "https://owasp.org/", "text": "owasp.org"},
+                    )
+                ),
+                "see https://owasp.org/",
+            ),
+            (
+                rich_text(
+                    section(
+                        user("U0BOT"),
                         text(" what is "),
                         {"type": "link", "url": "https://www.zaproxy.org", "text": "ZAP"},
                         text("?"),
